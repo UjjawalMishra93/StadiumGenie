@@ -1,0 +1,20 @@
+{
+  "name": "StadiumGenie",
+  "short_name": "StadiumGenie",
+  "description": "Gemini-powered smart stadium concierge for FIFA World Cup 2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0F1E",
+  "theme_color": "#E8192C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "utilities", "navigation"],
+  "lang": "en"
+}

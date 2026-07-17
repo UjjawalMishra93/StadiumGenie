@@ -1,0 +1,173 @@
+[
+  {
+    "id": "vf_att_gate_a",
+    "type": "gate",
+    "name": "Gate A — North Entry",
+    "zone": "north",
+    "description": "Main north entry for sections 101–120. Accessible ramp on left. Security checkpoint, bag check. Opens 3 hours before kickoff.",
+    "coordinates": { "x": 0.5, "y": 0.05 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_gate_b",
+    "type": "gate",
+    "name": "Gate B — East Entry",
+    "zone": "east",
+    "description": "East entry for sections 121–140. Nearest to Blue Lot parking. Fast-track lane for accessible guests.",
+    "coordinates": { "x": 0.95, "y": 0.5 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_gate_c",
+    "type": "gate",
+    "name": "Gate C — South Entry",
+    "zone": "south",
+    "description": "Primary fan entry. Metro shuttle drop-off zone directly outside. Family zone inside (sections 201–210).",
+    "coordinates": { "x": 0.5, "y": 0.95 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_gate_d",
+    "type": "gate",
+    "name": "Gate D — West Entry",
+    "zone": "west",
+    "description": "West entry for premium and VIP sections 301–320. Lower crowd density. Press entry also here.",
+    "coordinates": { "x": 0.05, "y": 0.5 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_medical_north",
+    "type": "facility",
+    "name": "Medical Station — North",
+    "zone": "north",
+    "description": "First aid station near Gate A. Staffed by 4 paramedics. AED available. Open match day + 2 hours.",
+    "coordinates": { "x": 0.45, "y": 0.12 },
+    "languagesSupported": ["en", "es", "fr"]
+  },
+  {
+    "id": "vf_att_medical_south",
+    "type": "facility",
+    "name": "Medical Station — South",
+    "zone": "south",
+    "description": "Main medical center near Gate C. Ambulance access. Language support for English and Spanish.",
+    "coordinates": { "x": 0.5, "y": 0.85 },
+    "languagesSupported": ["en", "es"]
+  },
+  {
+    "id": "vf_att_prayer_room",
+    "type": "facility",
+    "name": "Prayer & Reflection Room",
+    "zone": "west",
+    "description": "Quiet prayer room on Level 2 near Gate D. All faiths welcome. Prayer times posted at entrance. Wudu facility available.",
+    "coordinates": { "x": 0.1, "y": 0.4 },
+    "languagesSupported": ["en", "ar", "fr", "hi"]
+  },
+  {
+    "id": "vf_att_family_lounge",
+    "type": "facility",
+    "name": "Family Lounge",
+    "zone": "south",
+    "description": "Family and baby care lounge near Section 205. Nursing area, stroller parking, child wristband station.",
+    "coordinates": { "x": 0.55, "y": 0.9 },
+    "languagesSupported": ["en", "es", "fr", "pt"]
+  },
+  {
+    "id": "vf_att_accessible_restroom_n",
+    "type": "facility",
+    "name": "Accessible Restrooms — North",
+    "zone": "north",
+    "description": "Fully accessible restrooms with grab bars and space for mobility aids. Level 1, near Gate A ramp.",
+    "coordinates": { "x": 0.48, "y": 0.1 },
+    "languagesSupported": ["en"]
+  },
+  {
+    "id": "vf_att_accessible_restroom_e",
+    "type": "facility",
+    "name": "Accessible Restrooms — East",
+    "zone": "east",
+    "description": "Accessible restrooms on Level 1 and Level 2 east concourse, near sections 125 and 235.",
+    "coordinates": { "x": 0.88, "y": 0.55 },
+    "languagesSupported": ["en"]
+  },
+  {
+    "id": "vf_att_route_gate_a_to_sec110",
+    "type": "route",
+    "name": "Gate A → Section 110",
+    "zone": "north",
+    "description": "From Gate A: straight ahead 60m on main concourse → right at food court → escalator to Level 2 → left 30m → Section 110 on right.",
+    "coordinates": { "x": 0.5, "y": 0.2 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_route_gate_c_to_sec205",
+    "type": "route",
+    "name": "Gate C → Section 205 (Family Zone)",
+    "zone": "south",
+    "description": "From Gate C: past security checkpoint → follow Family Zone blue signs → elevator available on left → Level 2 → Section 205.",
+    "coordinates": { "x": 0.5, "y": 0.88 },
+    "languagesSupported": ["en", "es", "fr", "pt"]
+  },
+  {
+    "id": "vf_att_transport_metro",
+    "type": "transport",
+    "name": "Metro Line 2 — AT&T Stadium Station",
+    "zone": "south",
+    "description": "Direct metro link. Trains every 8 min on match days. Platform at South Gate plaza. Sustainable option — 60% lower carbon than driving.",
+    "coordinates": { "x": 0.5, "y": 1.0 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_att_transport_shuttle",
+    "type": "transport",
+    "name": "Fan Shuttle — Blue Route",
+    "zone": "east",
+    "description": "Shuttle from Blue Lot (3km east). Departs every 15 min from 2h before kickoff. Accessible buses on this route.",
+    "coordinates": { "x": 1.0, "y": 0.5 },
+    "languagesSupported": ["en", "es"]
+  },
+  {
+    "id": "vf_att_transport_parking_red",
+    "type": "transport",
+    "name": "Red Lot Parking — Gate B",
+    "zone": "east",
+    "description": "Closest general parking. Opens 4h before kickoff. Accessible spaces in Row A (marked in blue). $40 on match day.",
+    "coordinates": { "x": 0.9, "y": 0.3 },
+    "languagesSupported": ["en", "es"]
+  },
+  {
+    "id": "vf_sofi_gate_1",
+    "type": "gate",
+    "name": "SoFi Stadium — Gate 1 (North Peristyle)",
+    "zone": "north",
+    "description": "Main entry for Upper Bowl 500–600 level. Spectacular open-air entry. Metro C Line station adjacent.",
+    "coordinates": { "x": 0.5, "y": 0.05 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_sofi_gate_2",
+    "type": "gate",
+    "name": "SoFi Stadium — Gate 2 (East Club)",
+    "zone": "east",
+    "description": "Club-level entry. Premium lounge access. Concierge at entry. Accessible drop-off bay.",
+    "coordinates": { "x": 0.95, "y": 0.5 },
+    "languagesSupported": ["en", "es", "fr"]
+  },
+  {
+    "id": "vf_metlife_gate_a",
+    "type": "gate",
+    "name": "MetLife Stadium — Gate A",
+    "zone": "north",
+    "description": "North entry. NJ Transit train platform 5-min walk. Accessible ramp and elevator to all levels.",
+    "coordinates": { "x": 0.5, "y": 0.05 },
+    "languagesSupported": ["en", "es", "fr", "ar", "hi", "pt"]
+  },
+  {
+    "id": "vf_metlife_transport_nj_transit",
+    "type": "transport",
+    "name": "NJ Transit — MetLife Station",
+    "zone": "north",
+    "description": "Direct train from Penn Station (NY). ~25 min. Special match-day trains every 10 min. Most eco-friendly option from NYC.",
+    "coordinates": { "x": 0.48, "y": 0.0 },
+    "languagesSupported": ["en", "es", "fr"]
+  }
+]
