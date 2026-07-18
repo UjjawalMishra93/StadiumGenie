@@ -10,6 +10,7 @@ import dashboardRouter from './routes/dashboard.js';
 import assistRouter from './routes/assist.js';
 import broadcastRouter from './routes/broadcast.js';
 import metricsRouter from './routes/metrics.js';
+import sustainabilityRouter from './routes/sustainability.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/assist', assistRouter);
 app.use('/api/broadcast', broadcastRouter);
 app.use('/api/metrics', metricsRouter);
+app.use('/api/sustainability', sustainabilityRouter);
 
 // --- 404 ---
 app.use((_, res) => res.status(404).json({ error: 'Route not found' }));

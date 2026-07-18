@@ -1,18 +1,38 @@
 import express from 'express';
 import { generateAssistBrief } from '../services/gemini.js';
 
+// ─── Named Constants ───────────────────────────────────────────────────────────
+
+/** Prefix for all assistance request IDs. */
+const ASSIST_ID_PREFIX = 'req_';
+
+/** Maximum character length for fan-provided descriptions (PII boundary). */
+const MAX_DESCRIPTION_LENGTH = 500;
+
+/** Allowed status values for assistance request lifecycle. */
+const VALID_STATUSES = ['open', 'in-progress', 'resolved'];
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 const router = express.Router();
 
-// In-memory store for demo (Firestore is the documented scale path)
+/** In-memory store for demo (Firestore is the documented scale path). */
 const assistanceRequests = [];
 let nextId = 1;
 
-// GET /api/assist — list requests (for Ops Console)
+/**
+ * GET /api/assist
+ * Lists all assistance requests (newest first). Used by Ops Console and volunteers.
+ */
 router.get('/', (req, res) => {
   res.json({ requests: assistanceRequests });
 });
 
-// POST /api/assist — submit a new request (fan-facing)
+/**
+ * POST /api/assist
+ * Submits a new accessibility assistance request from a fan.
+ * Generates a volunteer-facing AI brief via Gemini with a graceful fallback.
+ */
 router.post('/', async (req, res) => {
   try {
     const { category, description, location } = req.body;
@@ -21,18 +41,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'category, description, and location are required' });
     }
 
-    const id = `req_${nextId++}`;
+    const id = `${ASSIST_ID_PREFIX}${nextId++}`;
     const request = {
       id,
       category,
-      description: description.slice(0, 500), // no PII beyond session scope
+      description: description.slice(0, MAX_DESCRIPTION_LENGTH), // no PII beyond session scope
       location,
       status: 'open',
       createdAt: new Date().toISOString(),
       staffBrief: null,
     };
 
-    // Generate staff brief with Gemini
+    // Generate staff brief with Gemini; fallback to a formatted plain-text brief
     try {
       request.staffBrief = await generateAssistBrief({ category, description, location });
     } catch {
@@ -47,21 +67,24 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH /api/assist/:id — update status (ops staff)
+/**
+ * PATCH /api/assist/:id
+ * Updates the status of an existing assistance request.
+ * Used by ops staff and volunteers to track request resolution.
+ */
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  const validStatuses = ['open', 'in-progress', 'resolved'];
 
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ error: `status must be one of: ${validStatuses.join(', ')}` });
+  if (!VALID_STATUSES.includes(status)) {
+    return res.status(400).json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` });
   }
 
-  const req_ = assistanceRequests.find(r => r.id === id);
-  if (!req_) return res.status(404).json({ error: 'Request not found' });
+  const found = assistanceRequests.find(r => r.id === id);
+  if (!found) return res.status(404).json({ error: 'Request not found' });
 
-  req_.status = status;
-  res.json({ request: req_ });
+  found.status = status;
+  res.json({ request: found });
 });
 
 export default router;

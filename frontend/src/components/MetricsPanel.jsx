@@ -1,8 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Clock, Globe, Server } from 'lucide-react';
+import { Zap, Clock, Globe, Server, Leaf } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+// ─── Static Configuration ─────────────────────────────────────────────────────
+
+/**
+ * Feature cards shown in the About section.
+ * Maps directly to the FIFA WC 2026 problem statement pillars.
+ */
+const FEATURE_CARDS = [
+  { icon: '📍', label: 'Navigation',        desc: 'Step-by-step directions' },
+  { icon: '👥', label: 'Crowd Management',  desc: 'Live zone monitoring' },
+  { icon: '♿', label: 'Accessibility',     desc: 'WCAG 2.1 AA compliant' },
+  { icon: '🚇', label: 'Transport',         desc: 'Sustainability-aware routing' },
+  { icon: '🌍', label: 'Multilingual',      desc: 'Auto language detection' },
+  { icon: '🔒', label: 'Ops Intelligence',  desc: 'Real-time staff alerts' },
+  { icon: '🌿', label: 'Sustainability',    desc: 'CO₂-aware travel guidance' },
+  { icon: '⚡', label: 'Decision Support',  desc: 'Actionable crowd alerts' },
+];
+
+/** Rows for the Real vs. Simulated transparency table. */
+const REALITY_ROWS = [
+  { label: 'Gemini AI responses',     real: true },
+  { label: 'Multilingual translation', real: true },
+  { label: 'Venue knowledge base',    real: true },
+  { label: 'Sustainability CO₂ data', real: true },
+  { label: 'Crowd / zone occupancy',  real: false },
+  { label: 'Transit ETAs',            real: false },
+  { label: 'Incident alerts',         real: false },
+];
+
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Displays the StadiumGenie about section with live backend performance metrics.
+ * Polls `/api/metrics` every 10 seconds to show real-time cache and latency stats.
+ *
+ * @returns {JSX.Element}
+ */
 export default function MetricsPanel() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,18 +73,12 @@ export default function MetricsPanel() {
         </div>
         <p className="text-sm text-brand-muted leading-relaxed">
           A Gemini-powered fan concierge and ops copilot for smart stadium management.
-          Covers navigation, crowd monitoring, accessibility, multilingual support, and operations.
+          Covers all FIFA WC 2026 problem statement pillars: navigation, crowd monitoring,
+          accessibility, multilingual support, sustainability, and real-time decision support.
         </p>
 
         <div className="grid grid-cols-2 gap-3 pt-1">
-          {[
-            { icon: '📍', label: 'Navigation', desc: 'Step-by-step directions' },
-            { icon: '👥', label: 'Crowd Management', desc: 'Live zone monitoring' },
-            { icon: '♿', label: 'Accessibility', desc: 'WCAG 2.1 AA compliant' },
-            { icon: '🚇', label: 'Transport', desc: 'Sustainability-aware' },
-            { icon: '🌍', label: 'Multilingual', desc: 'Auto language detection' },
-            { icon: '🔒', label: 'Ops Intelligence', desc: 'Real-time staff alerts' },
-          ].map(f => (
+          {FEATURE_CARDS.map(f => (
             <div key={f.label} className="bg-brand-border rounded-xl p-3">
               <div className="text-xl mb-1" aria-hidden="true">{f.icon}</div>
               <p className="text-xs font-semibold">{f.label}</p>
@@ -65,14 +95,7 @@ export default function MetricsPanel() {
           Real vs. Simulated
         </h3>
         <div className="space-y-2">
-          {[
-            { label: 'Gemini AI responses', real: true },
-            { label: 'Multilingual translation', real: true },
-            { label: 'Venue knowledge base', real: true },
-            { label: 'Crowd / zone occupancy', real: false },
-            { label: 'Transit ETAs', real: false },
-            { label: 'Incident alerts', real: false },
-          ].map(item => (
+          {REALITY_ROWS.map(item => (
             <div key={item.label} className="flex items-center justify-between text-sm">
               <span>{item.label}</span>
               <span className={item.real ? 'badge badge-green' : 'badge badge-yellow'}>
@@ -101,7 +124,7 @@ export default function MetricsPanel() {
               { icon: Server, label: 'Tokens Used',    value: metrics.totalTokensUsed },
               { icon: Globe,  label: 'Cache Size',     value: metrics.cacheStats?.size || 0 },
               { icon: Zap,    label: 'Cache Hit Rate', value: `${metrics.cacheStats?.hitRate || 0}%` },
-              { icon: Server, label: 'Hits / Misses',  value: `${metrics.cacheStats?.hits || 0} / ${metrics.cacheStats?.misses || 0}` },
+              { icon: Leaf,   label: 'Eco Mode',       value: 'Metro First' },
             ].map(m => {
               const Icon = m.icon;
               return (

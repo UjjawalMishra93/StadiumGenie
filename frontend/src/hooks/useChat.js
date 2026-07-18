@@ -2,9 +2,29 @@ import { useState, useCallback } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+/** Counter for generating unique per-session message IDs. */
+let msgIdCounter = 0;
+
 /**
- * Streams chat from /api/chat via SSE.
- * Returns { sendMessage, messages, isStreaming, clearMessages }
+ * Returns the next unique message ID string.
+ * @returns {string}
+ */
+function nextMsgId() {
+  return `msg_${Date.now()}_${msgIdCounter++}`;
+}
+
+/**
+ * Custom hook for streaming chat with the StadiumGenie `/api/chat` endpoint via SSE.
+ *
+ * @param {object} [options={}]
+ * @param {boolean} [options.accessibilityMode=false] - Whether to request simplified AI responses.
+ * @returns {{
+ *   messages: Array<{id: string, role: string, content: string, meta?: object, isError?: boolean}>,
+ *   isStreaming: boolean,
+ *   streamingText: string,
+ *   sendMessage: (userText: string) => Promise<void>,
+ *   clearMessages: () => void
+ * }}
  */
 export function useChat({ accessibilityMode = false } = {}) {
   const [messages, setMessages] = useState([]);
@@ -14,7 +34,7 @@ export function useChat({ accessibilityMode = false } = {}) {
   const sendMessage = useCallback(async (userText) => {
     if (!userText.trim() || isStreaming) return;
 
-    const userMsg = { role: 'user', content: userText };
+    const userMsg = { id: nextMsgId(), role: 'user', content: userText };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setIsStreaming(true);
@@ -27,7 +47,11 @@ export function useChat({ accessibilityMode = false } = {}) {
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updatedMessages, accessibilityMode }),
+        // Send messages without the id field (backend doesn't need it)
+        body: JSON.stringify({
+          messages: updatedMessages.map(({ role, content }) => ({ role, content })),
+          accessibilityMode,
+        }),
       });
 
       if (!response.ok) {
@@ -60,6 +84,7 @@ export function useChat({ accessibilityMode = false } = {}) {
       }
 
       setMessages(prev => [...prev, {
+        id: nextMsgId(),
         role: 'assistant',
         content: fullText,
         meta,
@@ -67,6 +92,7 @@ export function useChat({ accessibilityMode = false } = {}) {
       setStreamingText('');
     } catch (err) {
       setMessages(prev => [...prev, {
+        id: nextMsgId(),
         role: 'assistant',
         content: `Sorry, I encountered an error: ${err.message}. Please try again.`,
         isError: true,
@@ -77,6 +103,7 @@ export function useChat({ accessibilityMode = false } = {}) {
     }
   }, [messages, isStreaming, accessibilityMode]);
 
+  /** Resets the conversation to an empty state. */
   const clearMessages = () => setMessages([]);
 
   return { messages, isStreaming, streamingText, sendMessage, clearMessages };

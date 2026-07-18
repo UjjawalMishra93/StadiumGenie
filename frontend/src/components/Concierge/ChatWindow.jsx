@@ -1,6 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import { Volume2, Bot, User, Zap } from 'lucide-react';
 
+// ─── Static Data ───────────────────────────────────────────────────────────────
+
+/**
+ * Suggested starter questions shown on the empty chat screen.
+ * Covers navigation, sustainability, multilingual accessibility, and amenities pillars.
+ */
+const SUGGESTED_QUESTIONS = [
+  { text: '🗺️ Where is Gate A and how crowded is it?',           desc: 'Grounds navigation & live density' },
+  { text: '🚇 What is the most sustainable way to get home?',     desc: 'Eco-routing & CO₂ comparison' },
+  { text: '♿ मुझे accessible restroom चाहिए',                   desc: 'Multilingual accessibility support' },
+  { text: '🍔 Where is the nearest food court with vegan options?', desc: 'Stadium amenities' },
+];
+
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Speaks the given text aloud using the Web Speech API.
+ * Cancels any currently playing speech before starting.
+ *
+ * @param {string} text - The text to synthesize.
+ */
 function speakText(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -9,6 +30,14 @@ function speakText(text) {
   window.speechSynthesis.speak(utterance);
 }
 
+/**
+ * Escapes HTML special characters and applies minimal markdown-like formatting
+ * (bold via `**text**`, newlines to `<br>`).
+ * Safe to use with `dangerouslySetInnerHTML` since all tags are stripped first.
+ *
+ * @param {string} text - Raw AI response text.
+ * @returns {string} HTML-safe formatted string.
+ */
 function escapeAndFormat(text) {
   if (!text) return '';
   return text
@@ -21,6 +50,11 @@ function escapeAndFormat(text) {
     .replace(/\n/g, '<br>');
 }
 
+/**
+ * Renders a single chat message bubble with avatar, content, and action buttons.
+ *
+ * @param {{ message: object, isAccessibilityMode: boolean }} props
+ */
 function MessageBubble({ message, isAccessibilityMode }) {
   const isUser = message.role === 'user';
 
@@ -77,6 +111,16 @@ function MessageBubble({ message, isAccessibilityMode }) {
   );
 }
 
+/**
+ * Scrollable chat message list with streaming support and an empty-state welcome screen.
+ *
+ * @param {{
+ *   messages: Array<{id: string, role: string, content: string, meta?: object, isError?: boolean}>,
+ *   isStreaming: boolean,
+ *   streamingText: string,
+ *   isAccessibilityMode: boolean
+ * }} props
+ */
 export default function ChatWindow({ messages, isStreaming, streamingText, isAccessibilityMode }) {
   const bottomRef = useRef(null);
 
@@ -109,12 +153,7 @@ export default function ChatWindow({ messages, isStreaming, streamingText, isAcc
           <div className="w-full space-y-2.5">
             <p className="text-[10px] font-bold text-brand-muted uppercase tracking-wider text-left pl-1">Suggested Questions</p>
             <div className="grid grid-cols-1 gap-2 w-full">
-              {[
-                { text: '🗺️ Where is Gate A and how crowded is it?', desc: 'Grounds navigation & live density' },
-                { text: '🚇 What is the most sustainable way to get home?', desc: 'Eco-routing & metro schedule' },
-                { text: '♿ मुझे accessible restroom चाहिए', desc: 'Multilingual accessibility support' },
-                { text: '🍔 Where is the nearest food court with vegan options?', desc: 'Stadium amenities' },
-              ].map(q => (
+              {SUGGESTED_QUESTIONS.map(q => (
                 <div
                   key={q.text}
                   className="text-xs text-left bg-brand-border/60 hover:bg-brand-border border border-brand-border/30 rounded-xl p-3 transition-all duration-200"
@@ -128,8 +167,9 @@ export default function ChatWindow({ messages, isStreaming, streamingText, isAcc
         </div>
       )}
 
-      {messages.map((msg, i) => (
-        <MessageBubble key={i} message={msg} isAccessibilityMode={isAccessibilityMode} />
+      {/* Use stable message.id as key — avoids the index-as-key anti-pattern */}
+      {messages.map(msg => (
+        <MessageBubble key={msg.id} message={msg} isAccessibilityMode={isAccessibilityMode} />
       ))}
 
       {/* Streaming placeholder */}
