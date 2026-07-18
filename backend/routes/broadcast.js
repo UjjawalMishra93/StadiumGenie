@@ -2,42 +2,37 @@ import express from 'express';
 import { generateBroadcast } from '../services/gemini.js';
 import { broadcastRateLimiter } from '../middleware/rateLimiter.js';
 import { sanitizeString } from '../middleware/sanitize.js';
-
-// ─── Named Constants ───────────────────────────────────────────────────────────
-
-/** Minimum characters required in a staff broadcast message. */
-const MIN_MESSAGE_LENGTH = 5;
-
-/** Maximum characters accepted in a staff broadcast message. */
-const MAX_MESSAGE_LENGTH = 500;
-
-// ──────────────────────────────────────────────────────────────────────────────
+import { BroadcastRequestSchema, validate } from '../config/schemas.js';
+import { logger } from '../config/logger.js';
 
 const router = express.Router();
 
 /**
  * POST /api/broadcast
  * Generates a multilingual public announcement from a staff-authored message.
- * Applies the same input sanitization used by the chat endpoint.
+ * Input is validated with Zod and sanitized before forwarding to Gemini.
  */
 router.post('/', broadcastRateLimiter, async (req, res) => {
   try {
-    const { message, languages = ['en', 'es', 'fr', 'ar'] } = req.body;
-
-    if (!message || typeof message !== 'string' || message.trim().length < MIN_MESSAGE_LENGTH) {
-      return res.status(400).json({ error: `A staff message of at least ${MIN_MESSAGE_LENGTH} characters is required` });
+    const parsed = validate(BroadcastRequestSchema, req.body);
+    if (!parsed.success) {
+      logger.warn({ errors: parsed.errors }, 'Invalid broadcast request body');
+      return res.status(400).json({ error: parsed.errors.join('; ') });
     }
+    const { message, languages } = parsed.data;
 
-    const sanitized = sanitizeString(message).slice(0, MAX_MESSAGE_LENGTH);
+    const sanitized = sanitizeString(message);
+    logger.info({ languages, messageLength: sanitized.length }, 'Broadcast generation started');
 
     const translations = await generateBroadcast({
       staffMessage: sanitized,
       targetLanguages: languages,
     });
 
+    logger.info({ languages }, 'Broadcast generated successfully');
     res.json({ translations, generatedAt: new Date().toISOString() });
   } catch (err) {
-    console.error('[/api/broadcast]', err.message);
+    logger.error({ err: err.message }, 'Error in POST /api/broadcast');
     res.status(500).json({ error: 'Failed to generate broadcast' });
   }
 });

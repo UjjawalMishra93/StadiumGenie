@@ -62,9 +62,9 @@ export function getTransportRankings(distanceKm) {
     .map(mode => {
       const co2 = calculateCO2(mode, distanceKm);
       let ecoRating = 'poor';
-      if (co2.savedPct >= 90) ecoRating = 'excellent';
-      else if (co2.savedPct >= 60) ecoRating = 'good';
-      else if (co2.savedPct >= 20) ecoRating = 'moderate';
+      if (co2.savedPct >= 90) { ecoRating = 'excellent'; }
+      else if (co2.savedPct >= 60) { ecoRating = 'good'; }
+      else if (co2.savedPct >= 20) { ecoRating = 'moderate'; }
       return { mode, ...co2, ecoRating };
     })
     .sort((a, b) => a.emissionsG - b.emissionsG);

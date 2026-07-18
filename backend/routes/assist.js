@@ -1,5 +1,7 @@
 import express from 'express';
 import { generateAssistBrief } from '../services/gemini.js';
+import { AssistRequestSchema, AssistStatusSchema, validate } from '../config/schemas.js';
+import { logger } from '../config/logger.js';
 
 // ─── Named Constants ───────────────────────────────────────────────────────────
 
@@ -8,9 +10,6 @@ const ASSIST_ID_PREFIX = 'req_';
 
 /** Maximum character length for fan-provided descriptions (PII boundary). */
 const MAX_DESCRIPTION_LENGTH = 500;
-
-/** Allowed status values for assistance request lifecycle. */
-const VALID_STATUSES = ['open', 'in-progress', 'resolved'];
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -35,34 +34,36 @@ router.get('/', (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { category, description, location } = req.body;
-
-    if (!category || !description || !location) {
-      return res.status(400).json({ error: 'category, description, and location are required' });
+    const parsed = validate(AssistRequestSchema, req.body);
+    if (!parsed.success) {
+      logger.warn({ errors: parsed.errors }, 'Invalid assist request body');
+      return res.status(400).json({ error: parsed.errors.join('; ') });
     }
+    const { category, description, location } = parsed.data;
 
     const id = `${ASSIST_ID_PREFIX}${nextId++}`;
     const request = {
       id,
       category,
-      description: description.slice(0, MAX_DESCRIPTION_LENGTH), // no PII beyond session scope
+      description: description.slice(0, MAX_DESCRIPTION_LENGTH),
       location,
       status: 'open',
       createdAt: new Date().toISOString(),
       staffBrief: null,
     };
 
-    // Generate staff brief with Gemini; fallback to a formatted plain-text brief
     try {
       request.staffBrief = await generateAssistBrief({ category, description, location });
-    } catch {
+      logger.info({ id, category, location }, 'Assistance request created with AI brief');
+    } catch (briefErr) {
+      logger.warn({ id, err: briefErr.message }, 'Gemini brief generation failed — using fallback');
       request.staffBrief = `${category} needed at ${location}. Fan note: ${description.slice(0, 60)}`;
     }
 
-    assistanceRequests.unshift(request); // newest first
+    assistanceRequests.unshift(request);
     res.status(201).json({ request });
   } catch (err) {
-    console.error('[/api/assist]', err.message);
+    logger.error({ err: err.message }, 'Error in POST /api/assist');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -74,16 +75,18 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:id', (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
 
-  if (!VALID_STATUSES.includes(status)) {
-    return res.status(400).json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` });
+  const parsed = validate(AssistStatusSchema, req.body);
+  if (!parsed.success) {
+    logger.warn({ errors: parsed.errors, id }, 'Invalid status in PATCH /api/assist');
+    return res.status(400).json({ error: parsed.errors.join('; ') });
   }
 
   const found = assistanceRequests.find(r => r.id === id);
-  if (!found) return res.status(404).json({ error: 'Request not found' });
+  if (!found) { return res.status(404).json({ error: 'Request not found' }); }
 
-  found.status = status;
+  found.status = parsed.data.status;
+  logger.info({ id, status: found.status }, 'Assistance request status updated');
   res.json({ request: found });
 });
 

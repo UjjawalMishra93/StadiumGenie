@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config/env.js';
+import { logger } from '../config/logger.js';
 
 // ─── Named Constants ───────────────────────────────────────────────────────────
 
@@ -142,6 +143,7 @@ export async function streamChat({ messages, venueFacts, zoneStatuses, language 
   if (chatLogs.length > MAX_CHAT_LOGS) {
     chatLogs.splice(0, chatLogs.length - MAX_CHAT_LOGS);
   }
+  logger.info({ latencyMs, promptTokens, responseTokens, language }, 'Gemini stream completed');
 
   res.write(`data: ${JSON.stringify({ type: 'done', latencyMs, promptTokens, responseTokens })}\n\n`);
   res.end();

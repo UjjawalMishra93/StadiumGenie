@@ -10,7 +10,7 @@ import 'dotenv/config';
  */
 function parsePositiveInt(name, defaultVal) {
   const raw = process.env[name];
-  if (raw === undefined || raw === null) return defaultVal;
+  if (raw === undefined || raw === null) { return defaultVal; }
   const val = parseInt(raw, 10);
   if (Number.isNaN(val) || val <= 0) {
     console.warn(`[config] ${name} has invalid value ("${raw}") — using default ${defaultVal}`);

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config } from './config/env.js';
+import { logger } from './config/logger.js';
 import { startMockFeed } from './services/mockFeed.js';
 
 // Route imports
@@ -22,8 +23,14 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '16kb' }));
 
+// --- Request logging middleware ---
+app.use((req, _res, next) => {
+  logger.debug({ method: req.method, url: req.url }, 'Incoming request');
+  next();
+});
+
 // --- Routes ---
-app.get('/health', (_, res) => res.json({ status: 'ok', service: 'StadiumGenie API' }));
+app.get('/health', (_, res) => res.json({ status: 'ok', service: 'StadiumGenie API', version: '1.0.0' }));
 app.use('/api/chat', chatRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/assist', assistRouter);
@@ -32,11 +39,14 @@ app.use('/api/metrics', metricsRouter);
 app.use('/api/sustainability', sustainabilityRouter);
 
 // --- 404 ---
-app.use((_, res) => res.status(404).json({ error: 'Route not found' }));
+app.use((req, res) => {
+  logger.warn({ url: req.url }, 'Route not found');
+  res.status(404).json({ error: 'Route not found' });
+});
 
 // --- Global error handler ---
 app.use((err, _req, res, _next) => {
-  console.error('[server error]', err);
+  logger.error({ err: err.message, stack: err.stack }, 'Unhandled server error');
   res.status(500).json({ error: 'Unexpected server error' });
 });
 
@@ -44,9 +54,7 @@ app.use((err, _req, res, _next) => {
 if (process.env.NODE_ENV !== 'test') {
   startMockFeed();
   app.listen(config.port, () => {
-    console.log(`\n🏟️  StadiumGenie API running on http://localhost:${config.port}`);
-    console.log(`   Model: ${config.modelName}`);
-    console.log(`   Env:   ${config.nodeEnv}\n`);
+    logger.info({ port: config.port, model: config.modelName, env: config.nodeEnv }, '🏟️  StadiumGenie API started');
   });
 }
 

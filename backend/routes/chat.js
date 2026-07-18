@@ -5,26 +5,35 @@ import { buildCacheKey, getCached, setCached } from '../services/cache.js';
 import { sanitizeChatInput } from '../middleware/sanitize.js';
 import { chatRateLimiter } from '../middleware/rateLimiter.js';
 import { getZoneStatuses } from '../services/mockFeed.js';
+import { ChatRequestSchema, validate } from '../config/schemas.js';
+import { logger } from '../config/logger.js';
 
 const require = createRequire(import.meta.url);
 const venueFacts = require('../data/venue-facts.json');
 
 const router = express.Router();
 
+/**
+ * POST /api/chat
+ * Streams a Gemini AI response via SSE, grounded in live zone data and venue facts.
+ * Responses are cached by message content + language to reduce Gemini quota usage.
+ */
 router.post('/', chatRateLimiter, sanitizeChatInput, async (req, res) => {
   try {
-    const { messages, language = 'auto', accessibilityMode = false } = req.body;
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ error: 'messages array is required' });
+    // Zod schema validation
+    const parsed = validate(ChatRequestSchema, req.body);
+    if (!parsed.success) {
+      logger.warn({ errors: parsed.errors }, 'Invalid chat request body');
+      return res.status(400).json({ error: parsed.errors.join('; ') });
     }
+    const { messages, language, accessibilityMode } = parsed.data;
 
     const lastMessage = messages[messages.length - 1].content;
     const cacheKey = buildCacheKey(lastMessage, `${language}_${accessibilityMode}`);
     const cached = getCached(cacheKey);
 
     if (cached) {
-      // Return cached response as a single SSE stream
+      logger.debug({ cacheKey }, 'Cache hit — returning cached response');
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -37,15 +46,16 @@ router.post('/', chatRateLimiter, sanitizeChatInput, async (req, res) => {
     }
 
     const zoneStatuses = getZoneStatuses();
+    logger.info({ language, accessibilityMode, messageCount: messages.length }, 'Chat request started');
 
-    // streamChat writes directly to res via SSE and returns the full text + meta
     const result = await streamChat({ messages, venueFacts, zoneStatuses, language, accessibilityMode, res });
     if (result) {
       setCached(cacheKey, result);
+      logger.info({ latencyMs: result.meta.latencyMs, promptTokens: result.meta.promptTokens }, 'Chat request completed');
     }
 
   } catch (err) {
-    console.error('[/api/chat]', err.message);
+    logger.error({ err: err.message }, 'Error in /api/chat');
     if (!res.headersSent) {
       res.status(500).json({ error: 'Internal server error' });
     }

@@ -28,7 +28,7 @@ describe('POST /api/chat route integration', () => {
       .send({});
     
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('messages array is required');
+    expect(res.body.error).toBeTruthy(); // Zod validation error
   });
 
   it('should return 200 and stream SSE data on successful request', async () => {

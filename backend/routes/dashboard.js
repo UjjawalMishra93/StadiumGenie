@@ -1,6 +1,7 @@
 import express from 'express';
 import { getZoneStatuses } from '../services/mockFeed.js';
 import { generateCrowdSummary } from '../services/gemini.js';
+import { logger } from '../config/logger.js';
 
 // ─── Named Constants ───────────────────────────────────────────────────────────
 
@@ -12,6 +13,9 @@ const SUMMARY_REFRESH_INTERVAL_MS = 90000;
 
 /** Zone occupancy percentage that triggers an actionable ops alert. */
 const ALERT_THRESHOLD_PCT = 85;
+
+/** Zone occupancy percentage classified as critical (vs. high). */
+const CRITICAL_THRESHOLD_PCT = 95;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -29,10 +33,10 @@ async function refreshSummary() {
     const zones = getZoneStatuses();
     const text = await generateCrowdSummary(zones);
     cachedSummary = { text, updatedAt: new Date().toISOString() };
+    logger.debug('AI crowd summary refreshed');
   } catch (e) {
-    // 429 quota: don't flood logs, just keep old summary
     if (!e.message?.includes('429')) {
-      console.warn('[dashboard] summary refresh failed:', e.message);
+      logger.warn({ err: e.message }, 'Dashboard summary refresh failed');
     }
   }
 }
@@ -71,12 +75,13 @@ router.get('/alerts', (req, res) => {
       zoneId: z.zoneId,
       zoneName: z.name,
       occupancyPct: z.occupancyPct,
-      severity: z.occupancyPct >= 95 ? 'critical' : 'high',
+      severity: z.occupancyPct >= CRITICAL_THRESHOLD_PCT ? 'critical' : 'high',
       action: `Open overflow gates for ${z.name}. Redirect fans to adjacent lower-density zone.`,
       incident: z.lastIncident || null,
       detectedAt: new Date().toISOString(),
     }));
 
+  logger.info({ alertCount: alerts.length }, 'Alerts endpoint polled');
   res.json({
     alerts,
     totalAlerts: alerts.length,

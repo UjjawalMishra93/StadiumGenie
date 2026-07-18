@@ -21,8 +21,25 @@ export default [
       },
     },
     rules: {
+      // Error prevention
       'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'no-console': 'off',
+      'no-undef': 'error',
+      'no-unreachable': 'error',
+      'no-duplicate-imports': 'error',
+
+      // Best practices
+      'eqeqeq': ['error', 'always'],
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'curly': ['error', 'all'],
+      'no-return-await': 'error',
+      'no-throw-literal': 'error',
+
+      // Code style
+      'prefer-arrow-callback': 'error',
+      'object-shorthand': ['error', 'always'],
+      'no-useless-return': 'error',
     },
   },
 ];

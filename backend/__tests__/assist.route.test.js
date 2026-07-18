@@ -25,7 +25,7 @@ describe('Assistance Requests API (/api/assist)', () => {
       .send({ category: 'Other' }); // missing description and location
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toContain('required');
+    expect(res.body.error).toBeTruthy(); // Zod validation error
   });
 
   it('should create assistance request with generated brief on POST', async () => {

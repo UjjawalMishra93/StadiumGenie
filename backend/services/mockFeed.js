@@ -1,4 +1,5 @@
 import { config } from '../config/env.js';
+import { logger } from '../config/logger.js';
 
 // ─── Named Constants ───────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ function generateFeed() {
 export function startMockFeed() {
   generateFeed(); // immediate first tick
   feedInterval = setInterval(generateFeed, config.feedRefreshIntervalMs);
-  console.log(`[mockFeed] Started — refreshing every ${config.feedRefreshIntervalMs}ms`);
+  logger.info({ intervalMs: config.feedRefreshIntervalMs }, 'Mock crowd feed started');
 }
 
 /**
